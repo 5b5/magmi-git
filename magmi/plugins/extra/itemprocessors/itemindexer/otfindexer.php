@@ -297,6 +297,7 @@ class ItemIndexer extends Magmi_ItemProcessor
         }
         $purlk=$candidate;
         $this->usedurls[$candidate] = $pid;
+        $rewrites = array();
 
         if($dorewrite) {
                //rewrites SQL
