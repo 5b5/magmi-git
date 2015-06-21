@@ -1149,7 +1149,7 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             }
             foreach($deleteAttrsByStoreId as $store_id => $attr_ids) {
                 $attridlist = implode(",", $attr_ids);
-                $sql = "DELETE FROM $cpet WHERE entity_type_id=? AND attribute_id IN ($attridlist) AND store_id IN = ? AND entity_id=?";
+                $sql = "DELETE FROM $cpet WHERE entity_type_id=? AND attribute_id IN ($attridlist) AND store_id = ? AND entity_id=?";
                 $this->delete($sql, array($this->prod_etype,$store_id,$pid));
                 unset($attridlist);
             }
