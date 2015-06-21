@@ -997,6 +997,8 @@ class Magmi_ProductImportEngine extends Magmi_Engine
             $inserts = array();
             // deletes to perform on backend type eav
             $deletes = array();
+            // Attributes to delete by store id 
+            $deleteAttrsByStoreId = array();
             
 
             // iterate on all attribute descriptions for the given backend type
@@ -1101,18 +1103,14 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     // if one of the store in the list is admin
                     if ($store_id == 0)
                     {
-                        $sids = $store_ids;
-                        // remove all values bound to the other stores for this attribute,so that they default to "use admin value"
-                        array_shift($sids);
-                        if (count($sids) > 0)
-                        {
-                            $sidlist = implode(",", $sids);
-                            $ddata = array($this->prod_etype,$attid,$pid);
-                            $sql = "DELETE FROM $cpet WHERE entity_type_id=? AND attribute_id=? AND store_id IN ($sidlist) AND entity_id=?";
-                            $this->delete($sql, $ddata);
-                            unset($ddata);
+                        foreach($store_ids as $other_store_id) {
+                            if($other_store_id == $store_id)
+                                continue;
+                            if(!isset($deleteAttrsByStoreId[$other_store_id])) {
+                                $deleteAttrsByStoreId[$other_store_id] = array();
+                            }
+                            $deleteAttrsByStoreId[$other_store_id][] = $attid;
                         }
-                        unset($sids);
                         break;
                     }
                 }
@@ -1149,11 +1147,18 @@ class Magmi_ProductImportEngine extends Magmi_Engine
                     $this->log("No $tp Attributes created for sku " . $item["sku"], "warning");
                 }
             }
+            foreach($deleteAttrsByStoreId as $store_id => $attr_ids) {
+                $attridlist = implode(",", $attr_ids);
+                $sql = "DELETE FROM $cpet WHERE entity_type_id=? AND attribute_id IN ($attridlist) AND store_id IN = ? AND entity_id=?";
+                $this->delete($sql, array($this->prod_etype,$store_id,$pid));
+                unset($attridlist);
+            }
             //memory release
             unset($store_ids);
             unset($data);
             unset($inserts);
             unset($deletes);
+            unset($deleteAttrsByStoreId);
         }
         unset($fmap);
         //if new attributes are to be processed, return them
